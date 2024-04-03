@@ -54,3 +54,11 @@ export function getColor(count: number): Color {
 
     return stops[stops.length - 1].color;
 }
+
+export const dateToString = (date: Date) => {
+    return new Intl.DateTimeFormat("en-US", {
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+    }).format(date);
+};

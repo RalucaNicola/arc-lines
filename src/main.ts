@@ -12,7 +12,8 @@ import Color from "@arcgis/core/Color";
 import Slider from "@arcgis/core/widgets/Slider";
 import ArcLinesRenderNode from "./ArcLinesRenderNode";
 import { state } from "./State";
-import { getColor } from "./utils";
+import { dateToString, getColor } from "./utils";
+import { generateCalendar } from "./Calendar";
 
 let startDate: Date = null;
 let endDate: Date = null;
@@ -43,13 +44,7 @@ const view = new SceneView({
 (window as any).view = view;
 
 const currentTimeContainer = document.getElementById("currentTime");
-const dateToString = (date: Date) => {
-    return new Intl.DateTimeFormat("en-US", {
-        hour: "numeric",
-        minute: "numeric",
-        hour12: true,
-    }).format(date);
-};
+
 
 try {
     view.when(() => {
@@ -78,7 +73,7 @@ try {
                         case "register-data":
                             dailyCounts = e.data.counts;
                             dailyCounts[0] = 0;
-                            generateCalendar();
+                            generateCalendar(dataProcessingWorker, dailyCounts);
                             dataProcessingWorker.postMessage({ type: "get-daily-data", day: state.currentDay });
                             break;
                         case "get-daily-data":
@@ -107,6 +102,7 @@ try {
                                         count: stopsCount
                                     }
                                 });
+                                timeSlider.play();
                             } else {
                                 timeSlider = new TimeSlider({
                                     container: "timeSliderDiv",
@@ -162,40 +158,6 @@ try {
                     }
                 }
 
-                function generateCalendar() {
-                    const calendar = document.getElementById("calendar");
-                    const table = document.createElement("table");
-                    calendar.appendChild(table);
-                    const header = document.createElement("thead");
-                    header.innerHTML = `<tr><th>Su</th><th>Mo</th><th>Tu</th><th>We</th><th>Th</th><th>Fr</th><th>Sa</th></tr>`;
-                    table.appendChild(header);
-                    const body = document.createElement("tbody");
-                    table.appendChild(body);
-                    let week = null;
-                    for (let i = 1; i < dailyCounts.length; i++) {
-                        if (i % 7 === 1) {
-                            week = document.createElement("tr");
-                            body.appendChild(week);
-                        }
-                        const day = document.createElement("td");
-                        day.classList.add("day");
-                        if (i === state.currentDay) {
-                            day.classList.add("selected");
-                        }
-                        day.innerHTML = `${i}`;
-                        const color = getColor(dailyCounts[i]);
-                        day.style.backgroundColor = color.toCss();
-                        day.addEventListener("click", () => {
-                            state.currentDay = i;
-                            dataProcessingWorker.postMessage({ type: "get-daily-data", day: state.currentDay });
-                            document.querySelectorAll(".day").forEach((day) => {
-                                day.classList.remove("selected");
-                            });
-                            day.classList.add("selected");
-                        });
-                        week.appendChild(day);
-                    }
-                }
             }
         });
 
