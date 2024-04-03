@@ -152,6 +152,7 @@ class ArcLinesRenderNode extends RenderNode {
 
     initData(vertices: Array<Vertex>) {
         const gl = this.gl;
+        this.vertices = vertices;
         const numPoints = vertices.length;
         let positions = new Float32Array(numPoints * NO_POSITION_COORDS);
         let colors = new Float32Array(numPoints * NO_COLOR_COORDS);
