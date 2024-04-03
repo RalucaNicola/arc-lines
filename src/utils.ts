@@ -1,3 +1,5 @@
+import Color from "@arcgis/core/Color";
+
 export function createShader(gl: WebGL2RenderingContext, src: string, type: number): WebGLShader | null {
     const shader = gl.createShader(type);
     gl.shaderSource(shader, src);
@@ -28,4 +30,27 @@ export function createProgram(
         console.error("Failed to link program: " + gl.getProgramInfoLog(program));
     }
     return program;
+}
+
+export function getColor(count: number): Color {
+    const stops = [
+        { value: 500, color: new Color("#555") },
+        { value: 4000, color: new Color("#03a9fc") }
+    ];
+    for (let i = 0; i < stops.length; i++) {
+        const stop = stops[i];
+
+        if (count < stop.value) {
+            if (i === 0) {
+                return stop.color;
+            }
+
+            const prev = stops[i - 1];
+
+            const weight = (count - prev.value) / (stop.value - prev.value);
+            return Color.blendColors(prev.color, stop.color, weight);
+        }
+    }
+
+    return stops[stops.length - 1].color;
 }
