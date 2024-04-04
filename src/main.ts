@@ -1,26 +1,25 @@
 import WebScene from "@arcgis/core/WebScene";
-
 import SceneView from "@arcgis/core/views/SceneView";
-
 import Papa from "papaparse";
 import * as webMercatorUtils from "@arcgis/core/geometry/support/webMercatorUtils";
 import { watch, whenOnce } from "@arcgis/core/core/reactiveUtils";
 import TimeSlider from "@arcgis/core/widgets/TimeSlider";
-import { Vertex, Trip } from "./types";
+import { Trip, Station, InputStation, InOutData } from "./types";
 import TimeExtent from "@arcgis/core/TimeExtent";
-import Color from "@arcgis/core/Color";
 import Slider from "@arcgis/core/widgets/Slider";
 import ArcLinesRenderNode from "./ArcLinesRenderNode";
 import { state } from "./State";
-import { dateToString, getColor } from "./utils";
+import { dateToString } from "./utils";
 import { generateCalendar } from "./Calendar";
+import StationsLayer from "./StationsLayer";
 
 let startDate: Date = null;
 let endDate: Date = null;
-let vertices: Array<Vertex> = null;
 let renderNode: ArcLinesRenderNode = null;
 let timeSlider: TimeSlider = null;
 let dailyCounts: Array<number> = null;
+let stationsLayer: StationsLayer = null;
+let stationsInOutData: Array<InOutData> = null;
 
 const view = new SceneView({
     container: "viewDiv",
@@ -45,12 +44,10 @@ const view = new SceneView({
 
 const currentTimeContainer = document.getElementById("currentTime");
 
-
 try {
     view.when(() => {
         Papa.parse("./202401-tripdata-cambridge.csv", {
             delimiter: ",", download: true, header: true, dynamicTyping: true, complete: async (result) => {
-
                 const dataProcessingWorker = new Worker("./dataProcessingWorker.js");
                 let data = result.data.filter((trip: Trip) => trip.startTime && trip.endTime);
                 data = data.map((trip: Trip) => {
@@ -80,7 +77,7 @@ try {
                             startDate = new Date(e.data.data.startDate);
                             endDate = new Date(e.data.data.endDate);
                             state.currentTime = startDate.getTime() - startDate.getTime();
-                            vertices = e.data.data.vertices;
+                            let vertices = e.data.data.vertices;
                             if (renderNode) {
                                 renderNode.initData(vertices);
                             } else {
@@ -126,6 +123,13 @@ try {
                                         const timeString = dateToString(value.end);
                                         const [time, amPM] = timeString.split(/\s/);
                                         currentTimeContainer.innerHTML = `${time}<span class="amPM">${amPM}</span>`;
+                                        if (stationsInOutData && stationsLayer) {
+                                            const changedStations = stationsInOutData.filter((d) => {
+                                                const time = new Date(d.time);
+                                                return time.getTime() < value.end.getTime() && time.getTime() > startDate.getTime();
+                                            });
+                                            stationsLayer.updateGraphics(changedStations);
+                                        }
                                     }
                                 );
 
@@ -162,6 +166,28 @@ try {
         });
 
     }).catch(error => console.log(error));
+
+    Papa.parse("./bike-station-information-cambridge.csv", {
+        delimiter: ",", download: true, header: true, dynamicTyping: true, complete: (result) => {
+            const stations: Array<Station> = result.data.map((d: InputStation) => {
+                return {
+                    id: d.Number,
+                    name: d.Name,
+                    lat: d.Latitude,
+                    lng: d.Longitude
+                }
+            });
+            stationsLayer = new StationsLayer(stations);
+            view.map.add(stationsLayer);
+        }
+    });
+
+    Papa.parse("./202401-stationdata-cambridge.csv", {
+        delimiter: ",", download: true, header: true, dynamicTyping: true, complete: (result) => {
+            stationsInOutData = result.data as Array<InOutData>;
+
+        }
+    });
 
 } catch (error) {
     console.error(error);

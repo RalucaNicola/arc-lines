@@ -20,3 +20,24 @@ export interface Vertex {
     time: number;
     endTime: number;
 }
+
+
+export type Station = {
+    id: number;
+    name: string;
+    lat: number;
+    lng: number;
+}
+
+export type InputStation = {
+    Number: number;
+    Name: string;
+    Latitude: number;
+    Longitude: number;
+}
+
+export type InOutData = {
+    stationID: number;
+    type: "start" | "end";
+    time: string;
+}
