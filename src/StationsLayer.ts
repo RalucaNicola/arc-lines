@@ -76,7 +76,7 @@ const createGeometry = (origin: Point, topColor: number[], baseColor: number[]) 
 // }
 
 const inColor = [3, 215, 252, 255];
-const outColor = [245, 66, 173, 255];
+const outColor = [255, 115, 8, 255];
 const betweenColor = [250, 250, 250, 255];
 class StationsLayer extends GraphicsLayer {
 
@@ -119,7 +119,6 @@ class StationsLayer extends GraphicsLayer {
     }
 
     updateGraphics(stationsInOut: Array<InOutData>) {
-        console.log("updating graphics")
         this.stations.forEach((station) => {
             const inGraphic = this.graphics.find((g) => g.attributes.id === station.id && g.attributes.type === "in");
             const outGraphic = this.graphics.find((g) => g.attributes.id === station.id && g.attributes.type === "out");

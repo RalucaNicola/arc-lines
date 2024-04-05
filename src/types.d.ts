@@ -41,3 +41,7 @@ export type InOutData = {
     type: "start" | "end";
     time: string;
 }
+
+export type HistogramInfo = {
+    hour: number, bikeIn: number, bikeOut: number
+}

@@ -130,3 +130,21 @@ th {
 .esri-time-slider {
   box-shadow: none !important;
 }
+
+#histogram {
+  display: flex;
+  padding: 0 40px;
+  align-items: baseline;
+}
+
+#histogram > div {
+  flex: 1;
+}
+
+.bikesOut {
+  color: rgb(255, 115, 8);
+}
+
+.bikesIn {
+  color: rgb(3, 215, 252);
+}

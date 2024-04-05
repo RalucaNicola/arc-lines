@@ -4,7 +4,7 @@ import Papa from "papaparse";
 import * as webMercatorUtils from "@arcgis/core/geometry/support/webMercatorUtils";
 import { watch, whenOnce } from "@arcgis/core/core/reactiveUtils";
 import TimeSlider from "@arcgis/core/widgets/TimeSlider";
-import { Trip, Station, InputStation, InOutData } from "./types";
+import { Trip, Station, InputStation, InOutData, HistogramInfo } from "./types";
 import TimeExtent from "@arcgis/core/TimeExtent";
 import Slider from "@arcgis/core/widgets/Slider";
 import ArcLinesRenderNode from "./ArcLinesRenderNode";
@@ -12,6 +12,7 @@ import { state } from "./State";
 import { dateToString } from "./utils";
 import { generateCalendar } from "./Calendar";
 import StationsLayer from "./StationsLayer";
+import Histogram from "./Histogram";
 
 let startDate: Date = null;
 let endDate: Date = null;
@@ -20,6 +21,7 @@ let timeSlider: TimeSlider = null;
 let dailyCounts: Array<number> = null;
 let stationsLayer: StationsLayer = null;
 let stationsInOutData: Array<InOutData> = null;
+let histogram: Histogram = null;
 
 const view = new SceneView({
     container: "viewDiv",
@@ -71,6 +73,7 @@ try {
                             dailyCounts = e.data.counts;
                             dailyCounts[0] = 0;
                             generateCalendar(dataProcessingWorker, dailyCounts);
+                            histogram = new Histogram(document.getElementById("histogram"));
                             dataProcessingWorker.postMessage({ type: "get-daily-data", day: state.currentDay });
                             break;
                         case "get-daily-data":
@@ -83,7 +86,35 @@ try {
                             } else {
                                 renderNode = new ArcLinesRenderNode({ view, vertices });
                             }
-                            document.querySelector(".date").innerHTML = `${startDate.toDateString()} - ${dailyCounts[state.currentDay]} trips`;
+                            let bikesInTotalCounts = 0;
+                            let bikesOutTotalCounts = 0;
+                            if (stationsInOutData) {
+                                const dailyBikeCounts = stationsInOutData.filter((d) => {
+                                    const time = new Date(d.time);
+                                    return time.getTime() < endDate.getTime() && time.getTime() > startDate.getTime();
+                                });
+                                const histogramData: HistogramInfo[] = [];
+
+                                dailyBikeCounts.forEach((d) => {
+                                    const time = new Date(d.time);
+                                    const hour = time.getHours();
+                                    if (histogramData[hour]) {
+                                        if (d.type === "start") {
+                                            histogramData[hour].bikeOut += 1;
+                                            bikesInTotalCounts += 1;
+                                        } else {
+                                            histogramData[hour].bikeIn += 1;
+                                            bikesOutTotalCounts += 1;
+                                        }
+                                    } else {
+                                        histogramData[hour] = { hour, bikeIn: 0, bikeOut: 0 };
+                                    }
+                                });
+                                histogram.updateDay(histogramData);
+                            }
+
+                            document.querySelector(".date").innerHTML = `${startDate.toDateString()} - ${dailyCounts[state.currentDay]} trips - 
+                            <span class="bikesIn">${bikesInTotalCounts} arrivals</span> - <span class="bikesOut">${bikesOutTotalCounts} departures</span>`;
                             const stopsCount = Math.floor((endDate.getTime() - startDate.getTime()) / 30000);
                             if (timeSlider) {
                                 timeSlider.set({
@@ -123,6 +154,7 @@ try {
                                         const timeString = dateToString(value.end);
                                         const [time, amPM] = timeString.split(/\s/);
                                         currentTimeContainer.innerHTML = `${time}<span class="amPM">${amPM}</span>`;
+
                                         if (stationsInOutData && stationsLayer) {
                                             const changedStations = stationsInOutData.filter((d) => {
                                                 const time = new Date(d.time);
@@ -185,7 +217,6 @@ try {
     Papa.parse("./202401-stationdata-cambridge.csv", {
         delimiter: ",", download: true, header: true, dynamicTyping: true, complete: (result) => {
             stationsInOutData = result.data as Array<InOutData>;
-
         }
     });
 

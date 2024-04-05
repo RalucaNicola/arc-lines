@@ -27,7 +27,7 @@ onmessage = function (e) {
                             x: startX,
                             y: startY,
                             z: 0,
-                            color: [245, 66, 173, 0],
+                            color: [255, 115, 8, 0],
                             time: new Date(startTime).getTime() - startDate.getTime(),
                             endTime: new Date(endTime).getTime() - startDate.getTime()
                         }
