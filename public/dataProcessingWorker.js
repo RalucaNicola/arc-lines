@@ -26,7 +26,7 @@ onmessage = function (e) {
                         const start = {
                             x: startX,
                             y: startY,
-                            z: 50,
+                            z: 0,
                             color: [245, 66, 173, 0],
                             time: new Date(startTime).getTime() - startDate.getTime(),
                             endTime: new Date(endTime).getTime() - startDate.getTime()
@@ -34,7 +34,7 @@ onmessage = function (e) {
                         const end = {
                             x: endX,
                             y: endY,
-                            z: 50,
+                            z: 0,
                             color: [3, 215, 252, 0],
                             time: new Date(endTime).getTime() - startDate.getTime(),
                             endTime: new Date(endTime).getTime() - startDate.getTime()

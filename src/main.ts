@@ -135,10 +135,10 @@ try {
 
                                 const speedSlider = new Slider({
                                     container: "speedSliderDiv",
-                                    min: 20,
-                                    max: 200,
-                                    values: [100],
-                                    steps: [20, 100, 200],
+                                    min: 50,
+                                    max: 400,
+                                    values: [200],
+                                    steps: [50, 200, 400],
                                     snapOnClickEnabled: true,
                                     visibleElements: {
                                         labels: false,
