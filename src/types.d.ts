@@ -9,7 +9,8 @@ export interface Trip {
     endY?: number;
     startTime: string;
     endTime: string;
-    durationMin: number;
+    startStationId: number;
+    endStationId: number;
 }
 
 export interface Vertex {
@@ -19,6 +20,8 @@ export interface Vertex {
     color: Array<number>;
     time: number;
     endTime: number;
+    startStationId: string;
+    endStationId: string;
 }
 
 

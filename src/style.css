@@ -12,6 +12,7 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
+  overflow: hidden;
 }
 
 #viewDiv canvas {
@@ -21,6 +22,7 @@ body {
 #viewDiv {
   height: 100%;
   width: 100%;
+  overflow: hidden;
 }
 
 .menu {
@@ -147,4 +149,56 @@ th {
 
 .bikesIn {
   color: rgb(3, 215, 252);
+}
+
+#tooltip {
+  position: absolute;
+  background-color: rgba(50 50 50 / 80%);
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 0.8rem;
+  display: none;
+}
+
+#stationInfo {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(50 50 50 / 80%);
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  display: none;
+  max-width: 200px;
+}
+
+#stationInfo .title {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+#stationInfo .date {
+  font-size: 0.8rem;
+  font-style: italic;
+  font-weight: normal;
+  color: rgba(255 255 255 / 60%);
+}
+
+.bikeInfo {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.count {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+#stationInfo .bikesIn,
+#stationInfo .bikesOut {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
 }

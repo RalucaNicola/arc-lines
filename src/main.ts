@@ -9,7 +9,7 @@ import TimeExtent from "@arcgis/core/TimeExtent";
 import Slider from "@arcgis/core/widgets/Slider";
 import ArcLinesRenderNode from "./ArcLinesRenderNode";
 import { state } from "./State";
-import { dateToString } from "./utils";
+import { dateToString, getStationIdInteger } from "./utils";
 import { generateCalendar } from "./Calendar";
 import StationsLayer from "./StationsLayer";
 import Histogram from "./Histogram";
@@ -39,12 +39,19 @@ const view = new SceneView({
         lighting: {
             directShadowsEnabled: true
         }
+    },
+    constraints: {
+        tilt: {
+            max: 55
+        }
     }
 });
 
 (window as any).view = view;
 
 const currentTimeContainer = document.getElementById("currentTime");
+const tooltipContainer = document.getElementById("tooltip");
+const stationInfoContainer = document.getElementById("stationInfo");
 
 try {
     view.when(() => {
@@ -53,13 +60,14 @@ try {
                 const dataProcessingWorker = new Worker("./dataProcessingWorker.js");
                 let data = result.data.filter((trip: Trip) => trip.startTime && trip.endTime);
                 data = data.map((trip: Trip) => {
-                    const { startLng, startLat, endLng, endLat, startTime, endTime, durationMin } = trip;
+                    const { startLng, startLat, endLng, endLat, startTime, endTime, startStationId, endStationId } = trip;
                     const [startX, startY] = webMercatorUtils.lngLatToXY(startLng, startLat);
                     const [endX, endY] = webMercatorUtils.lngLatToXY(endLng, endLat);
                     return {
                         startTime,
                         endTime,
-                        durationMin,
+                        startStationId,
+                        endStationId,
                         startX,
                         startY,
                         endX,
@@ -89,13 +97,13 @@ try {
                             let bikesInTotalCounts = 0;
                             let bikesOutTotalCounts = 0;
                             if (stationsInOutData) {
-                                const dailyBikeCounts = stationsInOutData.filter((d) => {
+                                state.dailyBikeTrips = stationsInOutData.filter((d) => {
                                     const time = new Date(d.time);
                                     return time.getTime() < endDate.getTime() && time.getTime() > startDate.getTime();
                                 });
                                 const histogramData: HistogramInfo[] = [];
 
-                                dailyBikeCounts.forEach((d) => {
+                                state.dailyBikeTrips.forEach((d) => {
                                     const time = new Date(d.time);
                                     const hour = time.getHours();
                                     if (histogramData[hour]) {
@@ -130,7 +138,7 @@ try {
                                         count: stopsCount
                                     }
                                 });
-                                timeSlider.play();
+
                             } else {
                                 timeSlider = new TimeSlider({
                                     container: "timeSliderDiv",
@@ -165,32 +173,16 @@ try {
                                     }
                                 );
 
-                                const speedSlider = new Slider({
-                                    container: "speedSliderDiv",
-                                    min: 50,
-                                    max: 400,
-                                    values: [200],
-                                    steps: [50, 200, 400],
-                                    snapOnClickEnabled: true,
-                                    visibleElements: {
-                                        labels: false,
-                                        rangeLabels: false
-                                    }
-                                });
-
-                                speedSlider.on("thumb-drag", (event) => {
-                                    if (event.state === "stop") {
-                                        timeSlider.playRate = event.value;
-                                        if (timeSlider.viewModel.state === "playing") {
-                                            whenOnce(() => timeSlider.viewModel.state === "ready").then(() => {
-                                                timeSlider.play();
-                                            })
-                                        }
+                                watch(() => timeSlider.viewModel.state, (value) => {
+                                    if (value === "playing") {
+                                        state.currentStation = 0;
+                                        stationInfoContainer.style.display = 'none';
+                                        renderNode.requestRender();
                                     }
                                 });
 
                             }
-                            break;
+                            timeSlider.play();
                     }
                 }
 
@@ -211,14 +203,67 @@ try {
             });
             stationsLayer = new StationsLayer(stations);
             view.map.add(stationsLayer);
+            view.on("pointer-move", (event) => {
+                view.hitTest(event, { include: [stationsLayer] }).then((response) => {
+                    if (response.results.length) {
+                        view.container.style.cursor = "pointer";
+                        tooltipContainer.style.display = "block";
+                        tooltipContainer.style.left = `${event.x + 10}px`;
+                        tooltipContainer.style.top = `${event.y - 10}px`;
+                        tooltipContainer.innerHTML = response.results[0].graphic.attributes.name;
+                    } else {
+                        view.container.style.cursor = "default";
+                        tooltipContainer.style.display = "none";
+                        tooltipContainer.innerHTML = "";
+                    }
+                });
+            });
+            let timeSliderWasPlaying = false;
+            view.on("click", (event) => {
+                view.hitTest(event, { include: [stationsLayer] }).then((response) => {
+                    if (response.results.length) {
+                        const graphic = response.results[0].graphic;
+                        state.currentStation = getStationIdInteger(graphic.attributes.id);
+                        const { arrivals, departures } = getStationArrivalsAndDepartures(graphic.attributes.id);
+                        stationInfoContainer.innerHTML = `<p class="title">${graphic.attributes.name}</p>
+                        <p class="date">${startDate.toDateString()}</p>
+                        <div class="bikeInfo">
+                        <div class="bikesIn"><span class="count">${arrivals.length}</span><span>arrivals</span></div>
+                        <div class="bikesOut"><span class="count">${departures.length}</span><span>departures</span></div>
+                        </div>`;
+                        stationInfoContainer.style.display = 'block';
+                        if (timeSlider.viewModel.state === "playing") {
+                            timeSlider.stop();
+                            timeSliderWasPlaying = true;
+                        } else {
+                            timeSliderWasPlaying = false;
+                        }
+                    } else {
+                        state.currentStation = 0;
+                        if (timeSliderWasPlaying) {
+                            timeSlider.play();
+                        }
+                        stationInfoContainer.style.display = 'none';
+                    }
+
+                    renderNode.requestRender();
+                });
+            });
         }
     });
 
     Papa.parse("./202401-stationdata-cambridge.csv", {
         delimiter: ",", download: true, header: true, dynamicTyping: true, complete: (result) => {
             stationsInOutData = result.data as Array<InOutData>;
+            console.log(stationsInOutData);
         }
     });
+
+    const getStationArrivalsAndDepartures = (stationId: number) => {
+        const arrivals = state.dailyBikeTrips.filter((d) => d.stationID === stationId && d.type === "end");
+        const departures = state.dailyBikeTrips.filter((d) => d.stationID === stationId && d.type === "start");
+        return { arrivals, departures };
+    };
 
 } catch (error) {
     console.error(error);

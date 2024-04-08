@@ -62,3 +62,7 @@ export const dateToString = (date: Date) => {
         hour12: true,
     }).format(date);
 };
+
+export const getStationIdInteger = (stationId: string) => {
+    return parseInt(`${stationId.charCodeAt(0)}${stationId.slice(1)}`);
+}

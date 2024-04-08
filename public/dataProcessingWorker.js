@@ -22,11 +22,12 @@ onmessage = function (e) {
                     const endDate = new Date(`${day} January 2024 23:59:59`);
                     const vertices = [];
                     dailyBikeData.forEach((trip) => {
-                        const { startX, startY, endX, endY, startTime, endTime } = trip;
+                        const { startX, startY, endX, endY, startTime, endTime, startStationId, endStationId } = trip;
                         const start = {
                             x: startX,
                             y: startY,
                             z: 0,
+                            startStationId,
                             color: [255, 115, 8, 0],
                             time: new Date(startTime).getTime() - startDate.getTime(),
                             endTime: new Date(endTime).getTime() - startDate.getTime()
@@ -35,6 +36,7 @@ onmessage = function (e) {
                             x: endX,
                             y: endY,
                             z: 0,
+                            endStationId,
                             color: [3, 215, 252, 0],
                             time: new Date(endTime).getTime() - startDate.getTime(),
                             endTime: new Date(endTime).getTime() - startDate.getTime()
@@ -57,8 +59,8 @@ onmessage = function (e) {
 function calculatePointsOnParaboloid({ start, end }) {
     const points = [];
     const H = 1.0;
-    const { x: xs, y: ys, z: zs, time: time_s } = start;
-    const { x: xe, y: ye, z: ze, time: time_e } = end;
+    const { x: xs, y: ys, z: zs, time: time_s, startStationId } = start;
+    const { x: xe, y: ye, z: ze, time: time_e, endStationId } = end;
     const distance = Math.sqrt((xe - xs) ** 2 + (ye - ys) ** 2);
     const deltaZ = ze - zs;
     const dh = distance * H;
@@ -75,7 +77,7 @@ function calculatePointsOnParaboloid({ start, end }) {
         const b = start.color[2] * (1 - ratio) + end.color[2] * ratio;
         const a = start.color[3] * (1 - ratio) + end.color[3] * ratio;
         const time = time_s + (time_e - time_s) * ratio;
-        points.push({ x, y, z, color: [r, g, b, Math.floor(a * 255)], time, endTime: time_e })
+        points.push({ x, y, z, color: [r, g, b, Math.floor(a * 255)], time, endTime: time_e, startStationId, endStationId })
     }
     return points;
 }
