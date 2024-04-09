@@ -11,14 +11,14 @@ class Histogram {
             hourContainer.setAttribute("data-hour", i.toString());
             hourContainer.style.margin = "0 2px";
             this.container.appendChild(hourContainer);
-            const bikeIn = document.createElement("div");
-            bikeIn.style.width = `100%`;
-            bikeIn.style.backgroundColor = "rgb(3, 215, 252)";
-            hourContainer.appendChild(bikeIn);
             const bikeOut = document.createElement("div");
             bikeOut.style.width = `100%`;
             bikeOut.style.backgroundColor = "rgb(255, 115, 8)";
             hourContainer.appendChild(bikeOut);
+            const bikeIn = document.createElement("div");
+            bikeIn.style.width = `100%`;
+            bikeIn.style.backgroundColor = "rgb(3, 215, 252)";
+            hourContainer.appendChild(bikeIn);
         }
     }
 
