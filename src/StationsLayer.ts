@@ -42,39 +42,6 @@ const createGeometry = (origin: Point, topColor: number[], baseColor: number[]) 
     return geometry;
 };
 
-
-// a symbol based on a canvas
-
-// const padding = 5;
-// const symbolSize = 30;
-
-// function getSymbol(bikesIn: number, bikesOut: number) {
-//     bikesIn = bikesIn ** 2;
-//     bikesOut = bikesOut ** 2;
-//     const canvas = document.createElement("canvas");
-//     canvas.width = symbolSize;
-//     canvas.height = symbolSize + bikesIn + bikesOut + padding * 2;
-
-//     const context = canvas.getContext("2d");
-//     context.fillStyle = "rgba(255, 255, 255, 0.6)";
-//     context.fillRect(0, bikesIn + padding, symbolSize, symbolSize);
-
-//     context.fillStyle = "rgb(3, 215, 252)";
-//     context.fillRect(0, 0, symbolSize, bikesIn);
-
-//     context.fillStyle = "rgb(245, 66, 173)";
-//     context.fillRect(0, symbolSize + bikesIn + padding * 2, symbolSize, bikesOut);
-
-//     return new PointSymbol3D({
-//         symbolLayers: [new IconSymbol3DLayer({
-//             resource: { href: canvas.toDataURL("image/png") },
-//             material: { color: [255, 255, 255, 1] },
-//             anchor: "bottom",
-//             size: 20
-//         })]
-//     });
-// }
-
 const inColor = [3, 215, 252, 255];
 const outColor = [255, 115, 8, 255];
 const betweenColor = [250, 250, 250, 255];

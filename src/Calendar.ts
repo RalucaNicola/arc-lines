@@ -22,6 +22,7 @@ export function generateCalendar(worker: Worker, dailyCounts: Array<number>) {
             day.classList.add("selected");
         }
         day.innerHTML = `${i}`;
+        day.setAttribute("data-day", i.toString());
         const color = getColor(dailyCounts[i]);
         day.style.backgroundColor = color.toCss();
         day.addEventListener("click", () => {
