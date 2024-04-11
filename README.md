@@ -1,8 +1,8 @@
-Blue bike bicycle rides in Cambridge in January 2024. A demo that shows how to add raw WebGL lines to the visualization using ArcGIS Maps SDK for JavaScript.
+Blue bicycle rides in Cambridge in January 2024. A demo of visualizing origin destination data with arc lines on the web. Made with ArcGIS Maps SDK for JavaScript.
 
-[Live site](https://geoxc-apps4.bd.esri.com/experiments/arc-rides/)
+[Live site](https://geoxc-apps4.bd.esri.com/cambridge-bike-trips)
 
-[![screenshot of the application](./screenshot.png)](https://geoxc-apps4.bd.esri.com/experiments/arc-rides/)
+[![screenshot of the application](./screenshot.png)](https://geoxc-apps4.bd.esri.com/cambridge-bike-trips)
 
 Data source: [https://www.bluebikes.com/system-data](https://www.bluebikes.com/system-data)
 
